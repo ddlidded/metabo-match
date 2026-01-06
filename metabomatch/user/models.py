@@ -10,13 +10,13 @@
 """
 from datetime import datetime
 
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from itsdangerous import SignatureExpired
 from metabomatch.softwares.models import Software
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, url_for
-from flask.ext.login import UserMixin, AnonymousUserMixin
-from flask.ext.github import GitHubError
+from flask_login import UserMixin, AnonymousUserMixin
+from flask_github import GitHubError
 
 from metabomatch._compat import max_integer
 from metabomatch.extensions import db, cache, github
@@ -146,7 +146,7 @@ class User(db.Model, UserMixin, SerializableMixin):
         try:
             user_as_dict = github.get("user")
         except GitHubError as e:
-            print e.message
+            print(e)
             return None
         u.username = user_as_dict["login"]
         u.email = user_as_dict["email"]
@@ -299,15 +299,15 @@ class User(db.Model, UserMixin, SerializableMixin):
         return user, authenticated
 
     def _make_token(self, data, timeout):
-        s = Serializer(current_app.config['SECRET_KEY'], timeout)
+        s = Serializer(current_app.config['SECRET_KEY'])
         return s.dumps(data)
 
-    def _verify_token(self, token):
+    def _verify_token(self, token, max_age=3600):
         s = Serializer(current_app.config['SECRET_KEY'])
         data = None
         expired, invalid = False, False
         try:
-            data = s.loads(token)
+            data = s.loads(token, max_age=max_age)
         except SignatureExpired:
             expired = True
         except Exception:
@@ -342,13 +342,13 @@ class User(db.Model, UserMixin, SerializableMixin):
         return Topic.query.filter(Topic.user_id == self.id).\
             filter(Post.topic_id == Topic.id).\
             order_by(Post.id.desc()).\
-            paginate(page, flaskbb_config['TOPICS_PER_PAGE'], False)
+            paginate(page=page, per_page=flaskbb_config['TOPICS_PER_PAGE'], error_out=False)
 
     def all_posts(self, page):
         """Returns a paginated result with all posts the user has created."""
 
         return Post.query.filter(Post.user_id == self.id).\
-            paginate(page, flaskbb_config['TOPICS_PER_PAGE'], False)
+            paginate(page=page, per_page=flaskbb_config['TOPICS_PER_PAGE'], error_out=False)
 
     def track_topic(self, topic):
         """Tracks the specified topic

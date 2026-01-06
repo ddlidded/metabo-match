@@ -20,8 +20,8 @@ import datetime
 import sys
 
 from flask import Flask, request
-from flask.ext.login import current_user
-# from flask.ext.whooshalchemy import whoosh_index
+from flask_login import current_user
+# from flask_whooshalchemy import whoosh_index
 
 from metabomatch.softwares.views import softwares
 from metabomatch.scripts.views import scripts
@@ -36,16 +36,13 @@ from metabomatch.user.models import User, Guest, PrivateMessage
 # Import the auth blueprint
 from metabomatch.auth.views import auth
 
-# Import the admin blueprint
-from metabomatch.flaskbb.management.views import management
-
 # Import the forum blueprint
 from metabomatch.flaskbb.forum.views import forum
 from metabomatch.flaskbb.forum.models import Post, Topic, Category, Forum
 
 # extensions
 from metabomatch.extensions import db, login_manager, mail, cache, redis_store, \
-    migrate, themes, plugin_manager, github, csrf, gravatar, babel, compress, htmlminify, oauth  # ,debugtoolbar
+    migrate, themes, plugin_manager, github, csrf, gravatar, babel, compress, oauth  # ,debugtoolbar, htmlminify
 
 # various helpers
 from metabomatch.flaskbb.utils.helpers import format_date, time_since, crop_title, \
@@ -84,12 +81,31 @@ def create_app(config=None):
     configure_context_processors(app)
     configure_before_handlers(app)
     configure_errorhandlers(app)
+    ensure_dev_setup(app)
     #configure_logging(app)
 
     app.logger.addHandler(logging.StreamHandler(sys.stdout))
     app.logger.setLevel(logging.ERROR)
     # app.debug = True
     return app
+
+
+def ensure_dev_setup(app):
+    if not app.config.get("DEBUG"):
+        return
+
+    with app.app_context():
+        db.create_all()
+
+        from metabomatch.flaskbb.management.models import Setting
+        from metabomatch.user.models import Group
+        from metabomatch.flaskbb.utils.populate import create_default_groups, create_default_settings
+
+        if Group.query.count() == 0:
+            create_default_groups()
+
+        if Setting.query.count() == 0:
+            create_default_settings()
 
 
 def configure_blueprints(app):
@@ -100,7 +116,12 @@ def configure_blueprints(app):
     app.register_blueprint(forum, url_prefix=app.config["FORUM_URL_PREFIX"])
     app.register_blueprint(user, url_prefix=app.config["USER_URL_PREFIX"])
     app.register_blueprint(auth, url_prefix=app.config["AUTH_URL_PREFIX"])
-    app.register_blueprint(management, url_prefix=app.config["ADMIN_URL_PREFIX"])
+    try:
+        from metabomatch.flaskbb.management.views import management
+    except Exception:
+        management = None
+    if management is not None:
+        app.register_blueprint(management, url_prefix=app.config["ADMIN_URL_PREFIX"])
 
 
 def configure_extensions(app):
@@ -234,7 +255,7 @@ def configure_before_handlers(app):
         """
         Updates `lastseen` before every reguest if the user is authenticated
         """
-        if current_user.is_authenticated():
+        if current_user.is_authenticated:
             current_user.lastseen = datetime.datetime.utcnow()
             db.session.add(current_user)
             db.session.commit()
@@ -242,7 +263,7 @@ def configure_before_handlers(app):
     if app.config["REDIS_ENABLED"]:
         @app.before_request
         def mark_current_user_online():
-            if current_user.is_authenticated():
+            if current_user.is_authenticated:
                 mark_online(current_user.username)
             else:
                 mark_online(request.remote_addr, guest=True)

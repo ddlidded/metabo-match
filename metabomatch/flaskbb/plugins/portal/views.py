@@ -26,7 +26,7 @@ def index():
 
     news = Topic.query.filter(Topic.forum_id.in_(forum_ids)).\
         order_by(Topic.id.desc()).\
-        paginate(page, flaskbb_config["TOPICS_PER_PAGE"], True)
+        paginate(page=page, per_page=flaskbb_config["TOPICS_PER_PAGE"], error_out=True)
 
     recent_topics = Topic.query.order_by(Topic.date_created).limit(5).offset(0)
 

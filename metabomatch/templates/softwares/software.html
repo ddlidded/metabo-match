@@ -261,7 +261,7 @@
                                     <strong>{{ sentence_mapping.sentence.sentence }}</strong>
 
                                     <a class="a-upvotes" data-mappingid="{{sentence_mapping.id}}" rel="nofollow" 
-                                    {% if not current_user.is_authenticated()%} 
+                                    {% if not current_user.is_authenticated %} 
                                         href="#myModal" data-toggle="modal" 
                                         data-twitternexturl="{{url_for('auth.login_twitter', next=url_for('softwares.upvote', name=software.name, mapping_id=sentence_mapping.id))}}"
                                         data-githubnexturl="{{url_for('auth.login_github', next=url_for('softwares.upvote', name=software.name, mapping_id=sentence_mapping.id))}}"
@@ -465,7 +465,7 @@
                                             <span class="fa fa-fire"></span>
                                             | <a style="color:inherit; text-decoration: none;" class="procons-upvote"
                                                  data-proconid="{{ pro.id }}"
-                                                 {% if not current_user.is_authenticated()%} 
+                                                 {% if not current_user.is_authenticated %} 
                                                     href="#myModal" data-toggle="modal" 
                                                     data-twitternexturl="{{url_for('auth.login_twitter', next=url_for('softwares.upvote_procon', name=software.name, procon_id=pro.id))}}"
                                                     data-githubnexturl="{{url_for('auth.login_github', next=url_for('softwares.upvote_procon', name=software.name, procon_id=pro.id))}}"
@@ -518,7 +518,7 @@
                 </div>
                 <p>
                     <strong>
-                    <a {% if current_user.is_authenticated() %}
+                    <a {% if current_user.is_authenticated %}
                         href="{{ url_for('softwares.register_procon', name=software.name, kind='pro') }}"
                         {% else %}
                             href="#myModal" data-toggle="modal" data-twitternexturl="{{ url_for('auth.login_twitter', next=url_for('softwares.register_procon', name=software.name, kind='con')) }}" data-githubnexturl="{{ url_for('auth.login_github', next=url_for('softwares.register_procon', name=software.name, kind='pro')) }}"
@@ -542,7 +542,7 @@
                                             <span class="fa fa-fire-extinguisher"></span>
                                             | <a style="color:inherit; text-decoration: none;" class="procons-upvote"
                                                  data-proconid="{{ con.id }}"
-                                                 {% if not current_user.is_authenticated()%} 
+                                                 {% if not current_user.is_authenticated %} 
                                                     href="#myModal" data-toggle="modal" 
                                                     data-twitternexturl="{{url_for('auth.login_twitter', next=url_for('softwares.upvote_procon', name=software.name, procon_id=con.id))}}"
                                                     data-githubnexturl="{{url_for('auth.login_github', next=url_for('softwares.upvote_procon', name=software.name, procon_id=con.id))}}"
@@ -596,7 +596,7 @@
                 <p>
                     <strong>
 
-                    <a {% if current_user.is_authenticated() %}
+                    <a {% if current_user.is_authenticated %}
                         href="{{ url_for('softwares.register_procon', name=software.name, kind='con') }}"
                         {% else %}
                             href="#myModal" data-toggle="modal" data-twitternexturl="{{ url_for('auth.login_twitter', next=url_for('softwares.register_procon', name=software.name, kind='con')) }}" data-githubnexturl="{{ url_for('auth.login_github', next=url_for('softwares.register_procon', name=software.name, kind='con')) }}"
@@ -637,11 +637,11 @@
         </p>
 
 
-        {% if current_user.is_authenticated() and not software.name in (current_user.softwares_used | map(attribute='name')) %}
+        {% if current_user.is_authenticated and not software.name in (current_user.softwares_used | map(attribute='name')) %}
             <p>Do you use this software regularly ? <a class="btn btn-sm btn-default"
                                                        href="{{ url_for('softwares.register_user', name=software.name) }}"
                                                        rel="nofollow">Yes</a></p>
-        {% elif current_user.is_authenticated() and software.name in (current_user.softwares_used | map(attribute='name')) %}
+        {% elif current_user.is_authenticated and software.name in (current_user.softwares_used | map(attribute='name')) %}
             {#        <p><a class="btn btn-sm btn-primary" href="/" rel="nofollow"><span class="fa fa-certificate"></span> software user !</a></th>#}
             <p class="text-info">You are using this software regularly. <a class="btn btn-sm btn-default"
                                                                            href="{{ url_for('softwares.remove_user', name=software.name) }}"
@@ -661,7 +661,7 @@
 
         <h2><span class="text-muted fa fa-comment"></span> Post a review about this software</h2>
         <hr/>
-            {% if current_user.is_authenticated() %}
+            {% if current_user.is_authenticated %}
                 <form class="form-horizontal" method="post" action="{{ url_for('softwares.comment', name=software.name) }}">
                     {{ form.hidden_tag() }}
                     <div class="form-group">
@@ -738,7 +738,7 @@
         $('#software').addClass('active');
     </script>
     <script>
-        {% if current_user.is_authenticated() %}
+        {% if current_user.is_authenticated %}
             $('.a-upvotes').on('click',  function(e){
                 e.preventDefault();
                   var mapping_id = $(this).data('mappingid');

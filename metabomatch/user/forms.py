@@ -8,8 +8,8 @@
     :copyright: (c) 2014 by the FlaskBB Team.
     :license: BSD, see LICENSE for more details.
 """
-from flask.ext.login import current_user
-from flask.ext.wtf import Form
+from flask_login import current_user
+from flask_wtf import FlaskForm as Form
 from wtforms import (StringField, PasswordField, DateField, TextAreaField,
                      SelectField, ValidationError)
 from wtforms.validators import (Length, DataRequired, Email, EqualTo, regexp,

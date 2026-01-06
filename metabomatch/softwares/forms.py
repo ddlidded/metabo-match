@@ -1,8 +1,8 @@
 """
 Softwares forms
 """
-from flask.ext.login import current_user
-from flask.ext.wtf import Form, RecaptchaField
+from flask_login import current_user
+from flask_wtf import FlaskForm as Form, RecaptchaField
 from wtforms import StringField, IntegerField, BooleanField, SelectField, FileField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, regexp, ValidationError, Optional, URL
 
@@ -33,8 +33,8 @@ class SoftwareForm(Form):
 
     download_link = StringField("download link", validators=[Optional(), URL(message="Not a valid url")])
 
-    def validate(self):
-        is_valid = super(Form, self).validate()
+    def validate(self, extra_validators=None):
+        is_valid = super().validate(extra_validators=extra_validators)
         softs = Software.query.filter(Software.name.ilike('%' + self.name.data + '%')).all()
         if not softs:
             return is_valid
@@ -60,7 +60,7 @@ class SoftwareForm(Form):
         #---create sentence mapping
         soft.sentences_mapping = create_sentences_mapping(Sentence.query.all(), soft.name)
 
-        print "CURRENT USER ID:", current_user.id
+        print("CURRENT USER ID:", current_user.id)
 
         soft.save()
 
@@ -85,10 +85,10 @@ class SoftwareForm(Form):
 class SoftwareUpdateForm(SoftwareForm):
 
     def __init__(self):
-        super(SoftwareForm, self).__init__()
+        super().__init__()
 
-    def validate(self):
-        return super(Form, self).validate()
+    def validate(self, extra_validators=None):
+        return super().validate(extra_validators=extra_validators)
 
     def save(self, soft, selected_tags):
         """

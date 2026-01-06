@@ -27,7 +27,7 @@ def check_perm(user, perm, forum, post_user_id=None):
     """
     if can_moderate(user=user, forum=forum):
         return True
-    if post_user_id and user.is_authenticated():
+    if post_user_id and user.is_authenticated:
         return user.permissions[perm] and user.id == post_user_id
     return user.permissions[perm]
 

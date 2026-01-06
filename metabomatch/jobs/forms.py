@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from flask.ext.wtf import Form
-from flask.ext.login import current_user
+from flask_wtf import FlaskForm as Form
+from flask_login import current_user
 from metabomatch.extensions import db
 from metabomatch.jobs.models import Job, JobTags
 

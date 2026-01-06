@@ -14,8 +14,8 @@ from datetime import datetime
 
 from flask import (Blueprint, current_app, request, redirect, url_for, flash,
                    __version__ as flask_version)
-from flask.ext.login import current_user
-from flask.ext.plugins import get_all_plugins, get_plugin, get_plugin_from_all
+from flask_login import current_user
+from flask_plugins import get_all_plugins, get_plugin, get_plugin_from_all
 
 from metabomatch.flaskbb import __version__ as flaskbb_version
 from metabomatch._compat import iteritems
@@ -102,13 +102,13 @@ def users():
 
     if search_form.validate():
         users = search_form.get_results().\
-            paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+            paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
         return render_template("management/users.html", users=users,
                                search_form=search_form)
 
     users = User.query. \
         order_by(User.id.asc()).\
-        paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+        paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
 
     return render_template("management/users.html", users=users,
                            search_form=search_form)
@@ -178,12 +178,12 @@ def banned_users():
     users = User.query.filter(
         Group.banned == True,
         Group.id == User.primary_group_id
-    ).paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+    ).paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
 
 
     if search_form.validate():
         users = search_form.get_results().\
-            paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+            paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
 
         return render_template("management/banned_users.html", users=users,
                                search_form=search_form)
@@ -241,7 +241,7 @@ def reports():
     page = request.args.get("page", 1, type=int)
     reports = Report.query.\
         order_by(Report.id.asc()).\
-        paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+        paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
 
     return render_template("management/reports.html", reports=reports)
 
@@ -253,7 +253,7 @@ def unread_reports():
     reports = Report.query.\
         filter(Report.zapped == None).\
         order_by(Report.id.desc()).\
-        paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+        paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
 
     return render_template("management/unread_reports.html", reports=reports)
 
@@ -299,7 +299,7 @@ def groups():
 
     groups = Group.query.\
         order_by(Group.id.asc()).\
-        paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+        paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
 
     return render_template("management/groups.html", groups=groups)
 

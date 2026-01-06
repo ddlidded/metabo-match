@@ -12,15 +12,15 @@ from flask_compress import Compress
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
-from flask_cache import Cache
-from flask.ext.debugtoolbar import DebugToolbarExtension
-from flask_redis import Redis
+from flask_caching import Cache
+from flask_debugtoolbar import DebugToolbarExtension
+from flask_redis import FlaskRedis
 from flask_migrate import Migrate
 from flask_themes2 import Themes
 from flask_plugins import PluginManager
 from flask_github import GitHub
-from flask_htmlmin import HTMLMIN
-from flask_wtf.csrf import CsrfProtect
+# from flask_htmlmin import HTMLMIN
+from flask_wtf.csrf import CSRFProtect
 from flask_gravatar import Gravatar
 from flask_babel import Babel
 from flask_oauthlib.client import OAuth
@@ -38,7 +38,7 @@ mail = Mail()
 cache = Cache()
 
 # Redis
-redis_store = Redis()
+redis_store = FlaskRedis()
 
 # Debugtoolbar
 #debugtoolbar = DebugToolbarExtension()
@@ -58,13 +58,13 @@ github = GitHub()
 gravatar = Gravatar(default='identicon')
 
 # csrf protection
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 
 babel = Babel()
 
 compress = Compress()
 
-htmlminify = HTMLMIN()
+# htmlminify = HTMLMIN()
 
 #twitter oauth
 oauth = OAuth()

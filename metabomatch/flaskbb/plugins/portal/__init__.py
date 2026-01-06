@@ -1,4 +1,4 @@
-from flask.ext.plugins import connect_event
+from flask_plugins import connect_event
 
 from metabomatch.flaskbb.plugins import FlaskBBPlugin
 from metabomatch.flaskbb.utils.populate import (create_settings_from_fixture,

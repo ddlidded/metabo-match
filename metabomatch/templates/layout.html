@@ -99,6 +99,9 @@
                         <div class="col-md-6">
                             <a href="{{url_for('auth.login_github')}}" class="github-login-btn btn btn-primary"><span class="fa fa-github"></span> login with Github</a>
                         </div>
+                        <div class="col-md-12" style="padding-top:10px;">
+                            <a href="{{url_for('auth.login_authentik')}}" class="btn btn-success"><span class="fa fa-lock"></span> login with Authentik</a>
+                        </div>
                         <p class="help-block">We will never post on twitter on your behalf</p>
                     </div>
                 </div>
@@ -157,7 +160,7 @@
 
 
 
-                            {% if current_user and current_user.is_authenticated() %}
+                            {% if current_user and current_user.is_authenticated %}
                                 <div style="padding-top:10px;padding-left: 15px; margin-right: -10px"
                                      class="btn-group navbar-btn navbar-right">
 

@@ -11,7 +11,7 @@
 import os
 
 from flask import render_template
-# from flask.ext.mail import Message
+# from flask_mail import Message
 
 # from metabomatch.extensions import mail
 from postmark import PMMail

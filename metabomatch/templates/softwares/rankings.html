@@ -241,8 +241,12 @@
         And the award goes to <br/>
         <span class="fa fa-trophy text-muted"></span>
         <strong>
-            <a href="{{ url_for('softwares.info', name=overall_winner.name) }}">{{ overall_winner.name }}</a>
-            overall rate: {{ overall_winner.compute_rate() }}
+            {% if overall_winner %}
+                <a href="{{ url_for('softwares.info', name=overall_winner.name) }}">{{ overall_winner.name }}</a>
+                overall rate: {{ overall_winner.compute_rate() }}
+            {% else %}
+                <span class="text-muted">No software available</span>
+            {% endif %}
         </strong>
     </h2>
 

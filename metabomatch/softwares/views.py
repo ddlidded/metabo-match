@@ -24,8 +24,8 @@ from sqlalchemy import desc, func, asc
 from flask import Blueprint, request, redirect, url_for, flash, abort, render_template_string, jsonify
 
 from flask_login import login_required, current_user
-from flask_wtf import Form
-from flask_sqlalchemy import Pagination
+from flask_wtf import FlaskForm as Form
+from flask_sqlalchemy.pagination import Pagination
 
 from metabomatch.flaskbb.utils.helpers import crop_title, time_since
 from metabomatch.achievements import SoftwareAchievement, SCORE_SOFT
@@ -190,27 +190,27 @@ def index():
         keyword = SOFT_MAP[request.args['category']]
         if sort_by_name is not None:
             softs = Software.query.join(Software.tags).filter(Tag.tag == keyword).order_by(asc(Software.name)).paginate(
-                page, SOFT_PAR_PAGE, True)
+                page=page, per_page=SOFT_PAR_PAGE, error_out=True)
         elif sort_by_rate is not None:
             softs = Software.query.join(Software.tags).filter(Tag.tag == keyword).all()
             softs = Pagination(None, page, SOFT_PAR_PAGE, len(softs),
                                sorted(softs, key=lambda _: _.compute_rate(), reverse=True))
         else:
-            softs = Software.query.join(Software.tags).filter(Tag.tag == keyword).paginate(page, SOFT_PAR_PAGE, True)
+            softs = Software.query.join(Software.tags).filter(Tag.tag == keyword).paginate(page=page, per_page=SOFT_PAR_PAGE, error_out=True)
 
     elif request.args.get('text') is not None:
         text = request.args['text']
-        softs = Software.query.filter(Software.name.ilike('%' + text + '%')).paginate(page, SOFT_PAR_PAGE, True)
+        softs = Software.query.filter(Software.name.ilike('%' + text + '%')).paginate(page=page, per_page=SOFT_PAR_PAGE, error_out=True)
     else:
         if sort_by_name is not None:
-            softs = Software.query.order_by(asc(Software.name)).paginate(page, SOFT_PAR_PAGE, True)
+            softs = Software.query.order_by(asc(Software.name)).paginate(page=page, per_page=SOFT_PAR_PAGE, error_out=True)
         elif sort_by_rate is not None:
             softs = sorted(Software.query.all(), key=lambda _: _.compute_rate(), reverse=True)
             p = (page - 1) * SOFT_PAR_PAGE
             next_p = p + SOFT_PAR_PAGE
             softs = Pagination(None, page, SOFT_PAR_PAGE, len(softs), softs[p:next_p])
         else:
-            softs = Software.query.order_by(desc(Software.insertion_date)).paginate(page, SOFT_PAR_PAGE, True)
+            softs = Software.query.order_by(desc(Software.insertion_date)).paginate(page=page, per_page=SOFT_PAR_PAGE, error_out=True)
 
     # loading objects
     current_time = datetime.utcnow()
@@ -354,7 +354,8 @@ def register():
 
         return redirect(url_for('softwares.index'))
 
-    last_soft_name = db.session.query(Software.name).order_by(desc(Software.insertion_date)).first()[0]
+    last_soft = db.session.query(Software).order_by(desc(Software.insertion_date)).first()
+    last_soft_name = last_soft.name if last_soft else None
     tot_soft_count = db.session.query(Software.name).count()
     return render_template('softwares/register_software.html', form=form,
                            last_soft_name=last_soft_name, tot_soft_count=tot_soft_count)
@@ -428,7 +429,7 @@ def comment(name):
     if content is None and rating is None:
         flash("Must post a comment or/and a rate", "danger")
 
-    user_id = current_user.id if current_user.is_authenticated() else GUEST_USER_ID
+    user_id = current_user.id if current_user.is_authenticated else GUEST_USER_ID
     if content:
         c = Comment(content)
         c.user_id = user_id
@@ -490,7 +491,7 @@ def upvote(name, mapping_id):
     # create an upvote record
     upvote_inst = Upvote()
     upvote_inst.sentence_software_mapping_id = mapping_id if s_mapp is not None else abort(404)
-    upvote_inst.user_id = current_user.id if current_user.is_authenticated() else GUEST_USER_ID
+    upvote_inst.user_id = current_user.id if current_user.is_authenticated else GUEST_USER_ID
 
     upvote_inst.save()
 
@@ -525,12 +526,12 @@ def upvote_details(name, mapping_id):
 @login_required
 def register_procon(name):
     form = ProConsForm()
-    print "KIND:", request.args.get('kind')
+    print("KIND:", request.args.get('kind'))
     form.kind.data = request.args.get('kind') or 'pro'
     if form.validate_on_submit():
         # create new procon object
         procon = ProCons(request.form['kind'], request.form['title'], request.form['description'])
-        procon.owner_id = current_user.id if current_user.is_authenticated() else GUEST_USER_ID
+        procon.owner_id = current_user.id if current_user.is_authenticated else GUEST_USER_ID
         procon.software_name = name
         procon.save()
         flash('successfully saved !', 'success')
@@ -542,7 +543,7 @@ def register_procon(name):
 @softwares.route('/softwares/<name>/procons_upvote/<int:procon_id>')
 @login_required
 def upvote_procon(name, procon_id):
-    user_id = current_user.id if current_user.is_authenticated() else GUEST_USER_ID
+    user_id = current_user.id if current_user.is_authenticated else GUEST_USER_ID
     proconup = ProConsUpvote(procon_id, user_id)
     proconup.save()
     return redirect(url_for('softwares.info', name=name))
@@ -634,7 +635,7 @@ def update_description(name):
 @softwares.route('/rankings', methods=['GET'])  # @cache.cached(timeout=86400)
 def rankings():
     softwares_inst = Software.query.all()
-    overall_winner = max(softwares_inst, key=lambda _: _.compute_rate())
+    overall_winner = max(softwares_inst, key=lambda _: _.compute_rate()) if softwares_inst else None
     # should be easier with group_by
     softwares_name = [s.name for s in softwares_inst]
 
@@ -670,24 +671,27 @@ def rankings():
 
     # should be easier with Counter
     nb_softs_by_categories = {SOFT_MAP[i]: 0 for i in SOFT_MAP.keys()}
-    for soft_category in nb_softs_by_categories.iterkeys():
+    for soft_category in nb_softs_by_categories.keys():
         for s in softwares_inst:
             t = {t.tag for t in s.tags}
             if soft_category in t:
                 nb_softs_by_categories[soft_category] += 1
-
-    for k, v in nb_softs_by_categories.items():
-        nb_softs_by_categories[k] = float(v) / len(softwares_name)
+    if len(softwares_name) > 0:
+        for k, v in nb_softs_by_categories.items():
+            nb_softs_by_categories[k] = float(v) / len(softwares_name)
+    else:
+        for k in list(nb_softs_by_categories.keys()):
+            nb_softs_by_categories[k] = 0.0
 
     upvotes_by_software_name = {}
     for name in softwares_name:
         r = {'UI': db.session.query(func.sum(SentenceSoftwareMapping.upvote)).join(Sentence).join(Software).filter(
-            Sentence.category == 'UI', Software.name == name).all()[0][0],
+            Sentence.category == 'UI', Software.name == name).all()[0][0] or 0,
              'PERFORMANCE':
                  db.session.query(func.sum(SentenceSoftwareMapping.upvote)).join(Sentence).join(Software).filter(
-                     Sentence.category == 'PERFORMANCE', Software.name == name).all()[0][0],
+                     Sentence.category == 'PERFORMANCE', Software.name == name).all()[0][0] or 0,
              'SUPPORT': db.session.query(func.sum(SentenceSoftwareMapping.upvote)).join(Sentence).join(Software).filter(
-                 Sentence.category == 'SUPPORT', Software.name == name).all()[0][0]
+                 Sentence.category == 'SUPPORT', Software.name == name).all()[0][0] or 0
              }
         upvotes_by_software_name[name] = r
 

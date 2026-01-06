@@ -8,7 +8,7 @@ from sqlalchemy import func, desc
 import markdown2
 
 from flask import Blueprint, request, redirect, url_for, flash
-from flask.ext.login import login_required, current_user
+from flask_login import login_required, current_user
 
 from metabomatch.extensions import db
 
@@ -29,9 +29,9 @@ def index():
     tag = request.args.get('tag')
     if tag is not None:
         jobs_obj = Job.query.join(Job.job_tags).filter(JobTags.name == tag)\
-            .order_by(desc(Job.creation_date)).paginate(page, JOBS_PER_PAGE, True)
+            .order_by(desc(Job.creation_date)).paginate(page=page, per_page=JOBS_PER_PAGE, error_out=True)
     else:
-        jobs_obj = Job.query.paginate(page, JOBS_PER_PAGE, True)
+        jobs_obj = Job.query.paginate(page=page, per_page=JOBS_PER_PAGE, error_out=True)
     return render_template('jobs/jobs.html', jobs=jobs_obj)
 
 
@@ -39,7 +39,7 @@ def index():
 def register():
     form = JobForm()
     if form.validate_on_submit():
-        if current_user.is_authenticated():
+        if current_user.is_authenticated:
             form.save()
             goal = JobAchievement.unlocked_level(len(current_user.posted_jobs))
             if goal:

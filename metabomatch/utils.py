@@ -1,7 +1,10 @@
 from collections import OrderedDict
 import random
 import itertools
-import boto
+try:
+    import boto
+except Exception:
+    boto = None
 from metabomatch.extensions import db
 from metabomatch.softwares.models import Software, SentenceSoftwareMapping, Sentence
 import os
@@ -29,6 +32,8 @@ def s3_upload(source_file, destination_filename, acl='public-read'):
         the uuid4 function combined with the file extension from
         the source file.
     """
+    if boto is None:
+        raise RuntimeError("boto is required for S3 uploads")
 
     source_filename = secure_filename(source_file.data.filename)
     source_extension = os.path.splitext(source_filename)[1]
@@ -52,6 +57,8 @@ def s3_upload_from_server(source_file, destination_filename, acl='public-read'):
     :param acl:
     :return:
     """
+    if boto is None:
+        raise RuntimeError("boto is required for S3 uploads")
     conn = boto.connect_s3(os.environ.get('S3_KEY') or S3_KEY, os.environ.get("S3_SECRET") or S3_SECRET)
     b = conn.get_bucket(os.environ.get("S3_BUCKET") or S3_BUCKET)
 
@@ -66,6 +73,8 @@ def s3_delete(key):
     :param key: here it will be a software name for example
     :return:
     """
+    if boto is None:
+        raise RuntimeError("boto is required for S3 deletes")
     conn = boto.connect_s3(os.environ.get('S3_KEY') or S3_KEY, os.environ.get("S3_SECRET") or S3_SECRET)
     b = conn.get_bucket(os.environ.get("S3_BUCKET") or S3_BUCKET)
     return b.delete_key(key)
@@ -81,22 +90,24 @@ def best_softs_by_cat():
     upvotes_by_software_name = {}
     for name in softwares_name:
         r = {'UI': db.session.query(func.sum(SentenceSoftwareMapping.upvote)).join(Sentence).join(Software).filter(
-            Sentence.category == 'UI', Software.name == name).all()[0][0],
+            Sentence.category == 'UI', Software.name == name).all()[0][0] or 0,
              'PERFORMANCE':
                  db.session.query(func.sum(SentenceSoftwareMapping.upvote)).join(Sentence).join(Software).filter(
-                     Sentence.category == 'PERFORMANCE', Software.name == name).all()[0][0],
+                     Sentence.category == 'PERFORMANCE', Software.name == name).all()[0][0] or 0,
              'SUPPORT': db.session.query(func.sum(SentenceSoftwareMapping.upvote)).join(Sentence).join(Software).filter(
-                 Sentence.category == 'SUPPORT', Software.name == name).all()[0][0]
+                 Sentence.category == 'SUPPORT', Software.name == name).all()[0][0] or 0
              }
         upvotes_by_software_name[name] = r
 
     upvotes_by_software_name_items = upvotes_by_software_name.items()
+    if not upvotes_by_software_name_items:
+        return OrderedDict()
     best_ui_software = 'UI', sorted(upvotes_by_software_name_items, key=lambda _: -_[1]['UI'])[0][0]
     best_performance_software = 'PERFORMANCE', \
                                 sorted(upvotes_by_software_name_items, key=lambda _: -_[1]['PERFORMANCE'])[0][0]
     best_support_software = 'SUPPORT', sorted(upvotes_by_software_name_items, key=lambda _: -_[1]['SUPPORT'])[0][0]
     results = OrderedDict((best_ui_software, best_performance_software, best_support_software))
-    print results
+    print(results)
     return OrderedDict((best_ui_software, best_performance_software, best_support_software))
 
 

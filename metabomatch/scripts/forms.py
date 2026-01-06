@@ -2,8 +2,8 @@
 scripts forms
 """
 import requests
-from flask.ext.wtf import Form
-from flask.ext.login import current_user
+from flask_wtf import FlaskForm as Form
+from flask_login import current_user
 
 from wtforms import StringField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, URL, Optional
@@ -62,11 +62,11 @@ class ScriptForm(Form):
     def get_softwares(self):
         self.software.choices = [('---', 'None')] + [(s[0], s[0]) for s in db.session.query(Software.name).all()]
 
-    def validate(self):
+    def validate(self, extra_validators=None):
         """
         :returncustom validation logic
         """
-        is_valid = super(Form, self).validate()
+        is_valid = super().validate(extra_validators=extra_validators)
         if not self.github_gist_url.data and not self.content.data:
             self.content.errors.append("If no gist url is provided, content must be filled")
             return False

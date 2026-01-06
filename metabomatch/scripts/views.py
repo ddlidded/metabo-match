@@ -4,7 +4,7 @@ scripts views
 -------------
 """
 import os
-from flask.ext.wtf import Form
+from flask_wtf import FlaskForm as Form
 from metabomatch.achievements import ScriptAchievement, SCORE_SCRIPT
 
 try:
@@ -15,7 +15,7 @@ except ImportError:
 from sqlalchemy import desc, and_
 from flask import Blueprint, request, redirect, url_for, flash
 
-from flask.ext.login import login_required, current_user
+from flask_login import login_required, current_user
 
 from metabomatch.flaskbb.utils.helpers import render_template
 from metabomatch.scripts.models import Script, ScriptTags
@@ -40,21 +40,21 @@ def index():
     if software is not None and not_tags:
         if software == '---':
             filtered_scripts = Script.query.filter(Script.software_id == None).order_by(desc(Script.creation_date))\
-                .paginate(page, SCRIPTS_PER_PAGE, True)
+                .paginate(page=page, per_page=SCRIPTS_PER_PAGE, error_out=True)
         else:
             filtered_scripts = Script.query.join(Software).filter(Software.name == software)\
-                .paginate(page, SCRIPTS_PER_PAGE, True)
+                .paginate(page=page, per_page=SCRIPTS_PER_PAGE, error_out=True)
     elif (software is None or software == '---') and tags:
         tags_list = tags.split(',')
         filtered_scripts = Script.query.join(Script.script_tags).filter(ScriptTags.name.in_(tags_list))\
-            .paginate(page, SCRIPTS_PER_PAGE, True)
+            .paginate(page=page, per_page=SCRIPTS_PER_PAGE, error_out=True)
     elif software is not None and tags:
         tags_list = tags.split(',')
         filtered_scripts = Script.query.join(Software).join(Script.script_tags)\
                                                       .filter(and_(Software.name == software, ScriptTags.name.in_(tags_list)))\
-            .paginate(page, SCRIPTS_PER_PAGE, True)
+            .paginate(page=page, per_page=SCRIPTS_PER_PAGE, error_out=True)
     else:
-        filtered_scripts = Script.query.order_by(desc(Script.creation_date)).paginate(page, SCRIPTS_PER_PAGE, True)
+        filtered_scripts = Script.query.order_by(desc(Script.creation_date)).paginate(page=page, per_page=SCRIPTS_PER_PAGE, error_out=True)
     return render_template('scripts/scripts.html',
                            scripts=filtered_scripts,
                            softwares=softwares,
@@ -66,7 +66,7 @@ def register():
     form = ScriptForm()
     form.get_softwares()
     if form.validate_on_submit():
-        if current_user.is_authenticated():
+        if current_user.is_authenticated:
             form.save(request.form['software'])
             goal = ScriptAchievement.unlocked_level(len(current_user.scripts))
             if goal:

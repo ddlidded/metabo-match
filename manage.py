@@ -2,7 +2,38 @@ import sys
 import os
 from itertools import groupby
 
+# Monkey patch flask._compat for Flask-Script
+from metabomatch import _compat
+sys.modules['flask._compat'] = _compat
+
+# Monkey patch jinja2.Markup for old libraries
+import jinja2
+import markupsafe
+jinja2.Markup = markupsafe.Markup
+
+# Monkey patch werkzeug.urls.url_quote for flask-oauthlib
+import werkzeug.urls
+import urllib.parse
+werkzeug.urls.url_quote = urllib.parse.quote
+werkzeug.urls.url_decode = urllib.parse.parse_qs
+werkzeug.urls.url_encode = urllib.parse.urlencode
+
+import inspect
+import collections
+if not hasattr(inspect, "getargspec"):
+    ArgSpec = collections.namedtuple("ArgSpec", "args varargs keywords defaults")
+    def getargspec(func):
+        spec = inspect.getfullargspec(func)
+        return ArgSpec(spec.args, spec.varargs, spec.varkw, spec.defaults)
+    inspect.getargspec = getargspec
+
 from flask import current_app
+import flask
+from werkzeug.local import LocalStack
+if not hasattr(flask, '_request_ctx_stack'):
+    flask._request_ctx_stack = LocalStack()
+if not hasattr(flask, '_app_ctx_stack'):
+    flask._app_ctx_stack = LocalStack()
 
 try:
     from metabomatch.private_keys import GUEST_USER_ID
@@ -11,9 +42,9 @@ except ImportError:
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, OperationalError
-from flask.ext.script import (Manager, Shell, Server, prompt, prompt_pass,
+from flask_script import (Manager, Shell, Server, prompt, prompt_pass,
                               prompt_bool)
-from flask.ext.migrate import MigrateCommand
+# from flask_migrate import MigrateCommand
 
 from metabomatch.softwares.models import Software, SentenceSoftwareMapping, Sentence, \
     get_nb_commits, Upvote, ProConsUpvote, ProCons
@@ -36,7 +67,7 @@ manager = Manager(flask_app)
 manager.add_command("runserver", Server("localhost", port=5000))
 
 # Migration commands
-manager.add_command('db', MigrateCommand)
+# manager.add_command('db', MigrateCommand)
 
 
 # Add interactive project shell

@@ -9,9 +9,9 @@
     :license: BSD, see LICENSE for more details.
 """
 import sys
-from wtforms import (TextField, IntegerField, FloatField, BooleanField,
+from wtforms import (StringField, IntegerField, FloatField, BooleanField,
                      SelectField, SelectMultipleField, validators)
-from flask.ext.wtf import Form
+from flask_wtf import FlaskForm as Form
 
 from metabomatch._compat import max_integer, text_type, iteritems
 from metabomatch.extensions import db, cache
@@ -123,7 +123,7 @@ class Setting(db.Model):
             if setting.value_type == "string":
                 setattr(
                     SettingsForm, setting.key,
-                    TextField(setting.name, validators=field_validators,
+                    StringField(setting.name, validators=field_validators,
                               description=setting.description)
                 )
 

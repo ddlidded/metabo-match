@@ -9,7 +9,8 @@
     :license: BSD, see LICENSE for more details.
 """
 from datetime import datetime
-from wtforms.widgets.core import Select, HTMLString, html_params
+from markupsafe import Markup
+from wtforms.widgets.core import Select, html_params
 
 
 class SelectDateWidget(object):
@@ -70,4 +71,4 @@ class SelectDateWidget(object):
 
             html.append(' ')
 
-        return HTMLString(''.join(html))
+        return Markup(''.join(html))

@@ -8,7 +8,7 @@
     :copyright: (c) 2014 by the FlaskBB Team.
     :license: BSD, see LICENSE for more details.
 """
-from flask.ext.wtf import Form
+from flask_wtf import FlaskForm as Form
 from wtforms import (TextAreaField, StringField, SelectMultipleField,
                      BooleanField, SubmitField)
 from wtforms.validators import DataRequired, Optional, Length

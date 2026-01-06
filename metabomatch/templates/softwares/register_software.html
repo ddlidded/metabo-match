@@ -105,8 +105,11 @@
 
                     <div class="row">
                         <h5>Total #softwares: <span class="badge">{{ tot_soft_count }}</span></h5>
-{#                        <h4>Total #upvotes: <span class="badge">{{ }}</span></h4>#}
-                        <h5>Last software: <a href={{ url_for('softwares.info', name=last_soft_name) }}>{{ last_soft_name }}</a></h5>
+                        {% if last_soft_name %}
+                        <h5>Last software: <a href="{{ url_for('softwares.info', name=last_soft_name) }}">{{ last_soft_name }}</a></h5>
+                        {% else %}
+                        <h5>Last software: <span class="text-muted">None</span></h5>
+                        {% endif %}
                     </div>
 
                 </div>

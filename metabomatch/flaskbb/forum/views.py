@@ -13,7 +13,7 @@ import datetime
 
 from flask import (Blueprint, redirect, url_for, current_app,
                    request, flash)
-from flask.ext.login import login_required, current_user
+from flask_login import login_required, current_user
 from metabomatch.email import send_reply_notification
 
 from metabomatch.extensions import db
@@ -98,14 +98,14 @@ def view_topic(topic_id, slug=None):
     topic = Topic.query.filter_by(id=topic_id).first()
     posts = Post.query.filter_by(topic_id=topic.id).\
         order_by(Post.id.asc()).\
-        paginate(page, flaskbb_config['POSTS_PER_PAGE'], False)
+        paginate(page=page, per_page=flaskbb_config['POSTS_PER_PAGE'], error_out=False)
 
     # Count the topic views
     topic.views += 1
 
     # Update the topicsread status if the user hasn't read it
     forumsread = None
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         forumsread = ForumsRead.query.\
             filter_by(user_id=current_user.id,
                       forum_id=topic.forum.id).first()
@@ -491,12 +491,12 @@ def memberlist():
 
     if search_form.validate():
         users = search_form.get_results().\
-            paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+            paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
         return render_template("forum/memberlist.html", users=users,
                                search_form=search_form)
     else:
         users = User.query.\
-            paginate(page, flaskbb_config['USERS_PER_PAGE'], False)
+            paginate(page=page, per_page=flaskbb_config['USERS_PER_PAGE'], error_out=False)
         return render_template("forum/memberlist.html", users=users,
                                search_form=search_form)
 
@@ -511,7 +511,7 @@ def topictracker():
                           TopicsRead.user_id == current_user.id)).\
         add_entity(TopicsRead).\
         order_by(Post.id.desc()).\
-        paginate(page, flaskbb_config['TOPICS_PER_PAGE'], True)
+        paginate(page=page, per_page=flaskbb_config['TOPICS_PER_PAGE'], error_out=True)
 
     return render_template("forum/topictracker.html", topics=topics)
 

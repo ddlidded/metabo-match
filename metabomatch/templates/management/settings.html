@@ -23,7 +23,7 @@
 
     {{ form.hidden_tag() }}
     {% for field in form %}
-        {% if field.type not in ["TextField", "IntegerField"] %}
+        {% if field.type not in ["StringField", "IntegerField"] %}
             {% if field.type == "BooleanField" %}
                 {{ render_boolean_field(field) }}
             {% endif %}

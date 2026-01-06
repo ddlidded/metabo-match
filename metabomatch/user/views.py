@@ -13,8 +13,8 @@ from datetime import datetime
 import os
 
 from flask import Blueprint, flash, request, redirect, url_for
-from flask.ext.login import login_required, current_user
-from flask.ext.themes2 import get_themes_list
+from flask_login import login_required, current_user
+from flask_themes2 import get_themes_list
 
 from metabomatch.extensions import db
 from metabomatch.flaskbb.utils.helpers import render_template

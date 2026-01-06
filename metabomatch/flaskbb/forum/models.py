@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import os
 
 from flask import url_for, abort
-from flask.ext.login import current_user
+from flask_login import current_user
 
 from metabomatch.extensions import db
 from metabomatch.flaskbb.utils.helpers import slugify, get_categories_and_forums, get_forums
@@ -206,8 +206,8 @@ class Post(db.Model):
 
         # Adding a new post
         if user and topic:
-            self.user_id = user.id if current_user.is_authenticated() else GUEST_USER_ID
-            self.username = user.username if current_user.is_authenticated() else 'Guest'
+            self.user_id = user.id if current_user.is_authenticated else GUEST_USER_ID
+            self.username = user.username if current_user.is_authenticated else 'Guest'
             self.topic_id = topic.id
             self.date_created = datetime.utcnow()
 
@@ -222,7 +222,7 @@ class Post(db.Model):
             topic.forum.last_post_id = self.id
 
             # Update the post counts
-            if current_user.is_authenticated():
+            if current_user.is_authenticated:
                 user.post_count += 1
             topic.post_count += 1
             topic.forum.post_count += 1
@@ -394,7 +394,7 @@ class Topic(db.Model):
                            read.
         """
         # User is not logged in - abort
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return False
 
         topicsread = TopicsRead.query.\
@@ -510,8 +510,8 @@ class Topic(db.Model):
 
         # Set the forum and user id
         self.forum_id = forum.id
-        self.user_id = user.id if current_user.is_authenticated() else GUEST_USER_ID
-        self.username = user.username if current_user.is_authenticated() else 'Guest'
+        self.user_id = user.id if current_user.is_authenticated else GUEST_USER_ID
+        self.username = user.username if current_user.is_authenticated else 'Guest'
 
         # Set the last_updated time. Needed for the readstracker
         self.last_updated = datetime.utcnow()
@@ -677,7 +677,7 @@ class Forum(db.Model):
                            forumsread relation should be updated and
                            therefore is unread.
         """
-        if not user.is_authenticated() or topicsread is None:
+        if not user.is_authenticated or topicsread is None:
             return False
 
         # fetch the unread posts in the forum
@@ -769,7 +769,7 @@ class Forum(db.Model):
         :param user: The user object is needed to check if we also need their
                      forumsread object.
         """
-        if user.is_authenticated():
+        if user.is_authenticated:
             forum, forumsread = Forum.query.\
                 filter(Forum.id == forum_id).\
                 options(db.joinedload("category")).\
@@ -798,18 +798,18 @@ class Forum(db.Model):
 
         :param per_page: How many topics per page should be shown
         """
-        if user.is_authenticated():
+        if user.is_authenticated:
             topics = Topic.query.filter_by(forum_id=forum_id).\
                 outerjoin(TopicsRead,
                           db.and_(TopicsRead.topic_id == Topic.id,
                                   TopicsRead.user_id == user.id)).\
                 add_entity(TopicsRead).\
                 order_by(Topic.last_updated.desc()).\
-                paginate(page, per_page, True)
+                paginate(page=page, per_page=per_page, error_out=True)
         else:
             topics = Topic.query.filter_by(forum_id=forum_id).\
                 order_by(Topic.last_updated.desc()).\
-                paginate(page, per_page, True)
+                paginate(page=page, per_page=per_page, error_out=True)
 
             topics.items = [(topic, None) for topic in topics.items]
 
@@ -891,7 +891,7 @@ class Category(db.Model):
         :param user: The user object is needed to check if we also need their
                      forumsread object.
         """
-        if user.is_authenticated():
+        if user.is_authenticated:
             forums = cls.query.\
                 join(Forum, cls.id == Forum.category_id).\
                 outerjoin(ForumsRead,
@@ -926,7 +926,7 @@ class Category(db.Model):
         :param user: The user object is needed to check if we also need their
                      forumsread object.
         """
-        if user.is_authenticated():
+        if user.is_authenticated:
             forums = cls.query.\
                 filter(cls.id == category_id).\
                 join(Forum, cls.id == Forum.category_id).\

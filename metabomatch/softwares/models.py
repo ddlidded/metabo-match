@@ -461,22 +461,22 @@ class Software(db.Model):
                 Sentence.category == 'SUPPORT', Software.name == s.name).all()[0][0]
             softwares_support.append((s, c_support))
 
-        softwares_tot.sort(key=lambda (soft_tot, count_tot): count_tot, reverse=True)
+        softwares_tot.sort(key=lambda x: x[1], reverse=True)
         for i in range(len(softwares_tot)):
             softwares_tot[i][0].last_position_by_tot_upvotes = i + 1
             softwares_tot[i][0].save()
 
-        softwares_ui.sort(key=lambda (soft_ui, count_ui): count_ui, reverse=True)
+        softwares_ui.sort(key=lambda x: x[1], reverse=True)
         for i in range(len(softwares_ui)):
             softwares_ui[i][0].last_position_by_ui_upvotes = i + 1
             softwares_ui[i][0].save()
 
-        softwares_perf.sort(key=lambda (soft_perf, count_perf): count_perf, reverse=True)
+        softwares_perf.sort(key=lambda x: x[1], reverse=True)
         for i in range(len(softwares_perf)):
             softwares_perf[i][0].last_position_by_perf_upvotes = i + 1
             softwares_perf[i][0].save()
 
-        softwares_support.sort(key=lambda (soft_support, count_support): count_support, reverse=True)
+        softwares_support.sort(key=lambda x: x[1], reverse=True)
         for i in range(len(softwares_support)):
             softwares_support[i][0].last_position_by_support_upvotes = i + 1
             softwares_support[i][0].save()
@@ -544,7 +544,7 @@ def get_nb_commits(owner, repo):
     if owner is None:
         return 0, 0
     rep = github.get("".join(['repos/', owner, '/', repo, '/stats/commit_activity']))
-    print rep
+    print(rep)
     if not rep:
         return 0, 0
 

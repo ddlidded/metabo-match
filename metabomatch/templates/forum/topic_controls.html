@@ -23,7 +23,7 @@
         {% endif %}
     </div>
 
-    {% if current_user.is_authenticated() %}
+    {% if current_user.is_authenticated %}
     <div class="btn btn-group">
         {% if current_user.is_tracking_topic(topic) %}
         <a href="{{ url_for('forum.untrack_topic', topic_id=topic.id, slug=topic.slug) }}" class="btn btn-default"><span class="fa fa-star">
